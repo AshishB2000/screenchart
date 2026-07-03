@@ -162,6 +162,14 @@ npm run icons:verify   # verify logos vs installed simple-icons
 `postinstall` fetches map GeoJSON (`scripts/download-geo.js`). Plain JS loads directly in dev; the
 only "build" is packaging installers.
 
+## Git and commits
+- **Branch from `main` for every change.** Each new feature or fix starts on a fresh branch
+  created from an up-to-date `main` (`fix/...` for a bugfix, `feat/...` for a feature), is
+  committed there, then pushed and merged into `main` via a pull request. **Never commit
+  directly to `main`.**
+- **Never** add a `Co-Authored-By: Claude …` trailer (or any AI co-author line) to commit
+  messages. Write the title + body and stop — no trailer.
+
 ## Out of scope (don't build unprompted)
 Installing CLIs for the user, a hosted/central-server web version, a marketing website,
 spreadsheet export, and a full memory/summarization step (`memoryModel` config exists as an
