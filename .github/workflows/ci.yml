@@ -1,0 +1,27 @@
+name: CI build check
+
+# Fast per-push sanity gate: install deps, parse-check every JS file, run the
+# node self-checks. Catches a broken commit immediately. The heavy installer
+# build lives in build.yml (tags only) — this stays light.
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  check:
+    name: Install + parse + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm install
+      - name: Parse-check every JS file
+        run: git ls-files '*.js' | xargs -P4 -n1 node --check
+      - name: Run self-checks
+        run: npm test

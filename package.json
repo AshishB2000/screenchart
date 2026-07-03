@@ -1,0 +1,121 @@
+{
+  "name": "screenchart",
+  "version": "0.1.0",
+  "description": "Screenshot a chart or table, press a hotkey, get a plain-English explanation or an auto-drawn chart.",
+  "main": "main.js",
+  "author": "Screenchart",
+  "homepage": "https://screenshot.app",
+  "scripts": {
+    "start": "ELECTRON_RUN_AS_NODE= electron . --password-store=basic",
+    "postinstall": "node scripts/download-geo.js",
+    "test": "node scripts/test-geo-match.js && node scripts/test-value-labels.js && node scripts/test-viz-icons.js && node scripts/test-palette.js && node scripts/test-small-multiples.js && node scripts/test-more-charts.js && node scripts/test-map-capture.js && node scripts/test-readiness-gate.js",
+    "icons:verify": "node scripts/verify-icons.js",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:mac:unsigned": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --publish never",
+    "dist:win": "electron-builder --win --publish never"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "@sgratzl/chartjs-chart-boxplot": "^4.4.5",
+    "chart.js": "^4.5.1",
+    "chartjs-chart-financial": "^0.2.1",
+    "chartjs-chart-matrix": "^3.0.4",
+    "chartjs-chart-sankey": "^0.14.3",
+    "chartjs-chart-treemap": "^3.1.0",
+    "docx": "^9.7.1",
+    "leaflet": "^1.9.4",
+    "pdfmake": "^0.3.11",
+    "pptxgenjs": "^4.0.1",
+    "simple-icons": "^16.23.0"
+  },
+  "build": {
+    "appId": "app.screenshot.desktop",
+    "productName": "Screenchart",
+    "copyright": "Screenchart",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets/icons"
+    },
+    "files": [
+      "**/*",
+      "!.github/**",
+      "!.claude/**",
+      "!dist/**",
+      "!docs/**",
+      "!scripts/**",
+      "!assets/icons/**",
+      "!**/*.md",
+      "!verify-logos.mjs",
+      "!**/*.map"
+    ],
+    "asar": true,
+    "afterPack": "./scripts/afterPack.js",
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "assets/icons/icon.icns",
+      "minimumSystemVersion": "11.0",
+      "identity": "Screenchart Code Signing",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "darkModeSupport": true,
+      "extendInfo": {
+        "NSScreenCaptureUsageDescription": "Screenchart reads the area of your screen you select to analyze it."
+      }
+    },
+    "dmg": {
+      "title": "Screenchart",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 200,
+          "type": "file"
+        },
+        {
+          "x": 390,
+          "y": 200,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    }
+  }
+}
