@@ -24,7 +24,7 @@ quality before adding code. The model *extracts and classifies*; the app *does t
 - **Charts:** Chart.js 4 + plugins (treemap, sankey, matrix, financial, `@sgratzl` boxplot).
   **Maps:** Leaflet (OSM tiles — the one planned external network call).
 - **Export:** `pdfmake` (PDF), `docx` (Word), `pptxgenjs` (PPT). **Logos:** `simple-icons`.
-- **Key storage:** `safeStorage` (keychain/DPAPI). **Config:** JSON at `userData/config.json` (v2).
+- **Key storage:** plaintext in `userData/config.json` (gitignored, **not** encrypted). **Config:** JSON at `userData/config.json` (v2).
   **History:** threads + crops on disk under `userData` (`src/history.js`).
 
 ### Two execution modes (`config.executionMode`)
@@ -32,7 +32,7 @@ quality before adding code. The model *extracts and classifies*; the app *does t
   Antigravity, Codex, Grok, OpenCode, Cursor. The app **detects and runs only — never installs**
   (the "Install" button just opens a vendor URL). Gemini CLI is retired (honest disabled entry).
 - **`byok`** — Bring Your Own Key to a cloud API. Families: **anthropic, openai, gemini, gateway**
-  (any OpenAI-compatible endpoint — OpenRouter/custom/local servers). Keys encrypted per-provider.
+  (any OpenAI-compatible endpoint — OpenRouter/custom/local servers). Keys stored plaintext per-provider.
 
 ## Architecture
 
@@ -103,7 +103,7 @@ Renderer→main: `invoke` (reply) or `send` (fire-and-forget); main→renderer: 
 `memoryModel` (integration point, no memory step yet), `modelCache`, `hotkey`,
 `theme`/`themePreference`, `globalRules`, `notifications`. `sanitize()` whitelists plain fields;
 keys/BYOK/CLI use dedicated setters. `publicConfig()`/`publicByok()` are the only renderer-safe
-views — they add status booleans and **strip every raw/encrypted key**. `executionReady()` gates
+views — they add status booleans and **strip every raw key**. `executionReady()` gates
 capture. v1 flat config migrates to v2 on load.
 
 ## Coding Conventions
@@ -134,8 +134,8 @@ CSS vars. `preload/` → one contextBridge per window. `scripts/` → build + `t
   `theme.css`. Brand/badge colors are CSS classes (CSP forbids inline styles).
 
 ## Security
-- Keys encrypted per-provider via `safeStorage` — **never plaintext, logged, or sent to a
-  renderer** (raw or encrypted). Renderers get only `hasKey`/status. Renderer key validation is a
+- Keys stored **plaintext** in `userData/config.json` (gitignored, not encrypted) — but **never
+  logged or sent to a renderer**. Renderers get only `hasKey`/status. Renderer key validation is a
   **format check only, no network**.
 - Local CLI: **detect and run only — NEVER install** (no `npm/brew/curl`, no shell). Detection
   resolves binaries on PATH + known bin dirs and runs `<bin> --version`.

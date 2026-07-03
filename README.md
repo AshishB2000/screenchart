@@ -57,6 +57,33 @@ portal support is out of scope for now.
 Captures are cropped from the actual returned bitmap resolution, so selections stay accurate on
 Retina and Windows display-scaling (125–150%).
 
+## Scripts
+
+Developer/workflow helpers live in the **screenchart-dev skill** at
+[`.claude/skills/screenchart-dev/scripts/`](.claude/skills/screenchart-dev/scripts/)
+(POSIX bash, macOS/Linux). Claude Code auto-loads them as a skill when you set up
+the dev environment, check build prerequisites, open a PR, or file an issue; you
+can also run them by hand:
+
+| Script | What it does |
+|--------|--------------|
+| `check-prereqs.sh` | Verify the build environment: Node 18+, npm, `gh` installed **and** authenticated, electron-builder. Exits non-zero if any required check fails. |
+| `setup-workspace.sh` | Bootstrap a fresh clone: run the prereq check, `npm install`, then print next steps. |
+| `create-pr.sh` | Push the current branch and open a PR into `main` via `gh` (refuses to run on `main`). Does not merge. |
+| `create-issue.sh` | Open a GitHub issue in `AshishB2000/screenchart` via `gh`. |
+
+```bash
+bash .claude/skills/screenchart-dev/scripts/check-prereqs.sh
+bash .claude/skills/screenchart-dev/scripts/setup-workspace.sh
+bash .claude/skills/screenchart-dev/scripts/create-pr.sh                     # gh fills title/body from commits
+bash .claude/skills/screenchart-dev/scripts/create-pr.sh "Title" "Body"       # or pass a title + body
+bash .claude/skills/screenchart-dev/scripts/create-issue.sh "Title" "Body" --label bug
+```
+
+The scripts run from any directory (they resolve the repo root themselves).
+`create-pr.sh` / `create-issue.sh` need the [`gh` CLI](https://cli.github.com/)
+authenticated (`gh auth login`).
+
 ## Scope
 
 Single primary display only. AI/API integration, configuration UI, multi-monitor support,
