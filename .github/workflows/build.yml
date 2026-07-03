@@ -78,5 +78,6 @@ jobs:
           files: artifacts/**/*
           fail_on_unmatched_files: true
           generate_release_notes: true
-          # Flag auto-published builds as pre-release (non-production, not "Latest").
-          prerelease: true
+          # Pre-release only when the tag has a suffix (v0.1.0-beta.1, -rc.1, …);
+          # plain tags (v1.0.0) publish as a normal "Latest" release.
+          prerelease: ${{ contains(github.ref_name, '-') }}
