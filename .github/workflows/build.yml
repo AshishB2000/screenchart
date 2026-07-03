@@ -78,3 +78,5 @@ jobs:
           files: artifacts/**/*
           fail_on_unmatched_files: true
           generate_release_notes: true
+          # Flag auto-published builds as pre-release (non-production, not "Latest").
+          prerelease: true
