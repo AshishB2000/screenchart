@@ -218,11 +218,16 @@ async function startCapture() {
     // Extract a real reason from ANY thrown value (some rejections carry no
     // .message, which is why this used to print "Capture failed: undefined").
     const reason = (err && (err.message || err.toString())) || String(err) || 'unknown error';
-    console.error('[capture] startCapture failed:', err && err.stack || err);
-    pushStatus('Capture failed: ' + reason);
+    console.error('[capture] startCapture failed:', reason, '\n', err && err.stack || err);
     endCapture();
     // The overwhelmingly common cause here is Screen Recording not being active
-    // for the app — guide the user to the permission panel instead of a dead end.
+    // for the app — getSources fails/times out, most often on the FIRST capture
+    // while macOS is still showing its OWN permission dialog. Do NOT surface a
+    // Screenchart "Capture failed" card here: it duplicates the native OS prompt
+    // and reads as a broken app. Log it (above) and route to the permission
+    // panel guidance instead — same as the empty-frame path.
+    // TODO: post-permission onboarding — route to existing setup window with a
+    // "grant Screen Recording, then relaunch" hint.
     openPermission();
   }
 }
