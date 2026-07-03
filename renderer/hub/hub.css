@@ -3498,6 +3498,9 @@ select.model-picker::-ms-expand { display: none; }
   font-size: 12.5px; color: var(--muted);
   padding: 8px 2px;
 }
+/* display:flex above overrides the UA [hidden] rule, so the JS `hidden = true`
+   wouldn't visually clear the spinner — restore it (same fix as .ex-cli-list). */
+.ex-local-scanning[hidden] { display: none; }
 
 .ex-cli-group { margin-top: 10px; }
 
