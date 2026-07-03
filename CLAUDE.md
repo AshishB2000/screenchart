@@ -1,166 +1,169 @@
 # Screenchart
 
-Screenshot anything on screen → press a hotkey → Screenchart analyzes the content and
-responds in plain English. Local-first, model-agnostic, open source.
+Screenshot anything on screen → press a hotkey → Screenchart analyzes the content in plain
+English and can draw the right chart or map from it. Local-first, model-agnostic, open source (MIT).
 
-**Core principle:** the intelligence is in the prompt, not the plumbing. Compete on prompt
-quality — invest in the prompt before adding code.
+**Core principle:** the intelligence is in the prompt, not the plumbing — invest in prompt
+quality before adding code. The model *extracts and classifies*; the app *does the math*
+(deterministic, auditable — the model never writes a computed number).
 
 ## Project Overview
-- **What:** a screen tool. Drag a box around content; a vision model reads it and answers.
-- **One mode — analysis.** The model looks at whatever is on screen (chart, table, dashboard,
-  text, anything) and returns a plain-language analysis. One call; text is the product.
-- **Audience:** launch crowd = developers / local-AI users wanting fast, private, no-key.
-  Benefits most = non-technical people living in dashboards and spreadsheets.
+- **What:** drag a box around on-screen content; a vision model reads it and answers.
+- **One mode — analysis.** The model returns plain-language analysis PLUS structured data; the
+  app then computes metrics, writes a number-accurate headline, and offers charts/maps + export.
+- **Follow-ups:** each capture is a conversation. The model is stateless, so follow-ups replay
+  the full thread (system prompt + original prompt + screenshot + every prior turn) each turn.
+- **Audience:** developers / local-AI users (fast, private, no-key); benefits non-technical
+  people living in dashboards and spreadsheets most.
 
 ## Tech Stack
-- **Runtime:** Electron 33 (macOS-first; darwin, win32, linux in scope eventually)
-- **Language:** plain JavaScript (no TypeScript, no bundler)
-- **UI:** vanilla HTML + CSS + JS; no frontend framework
-- **Screenshot / hotkey:** Electron `desktopCapturer` + `globalShortcut` (`Cmd/Ctrl+Shift+S`)
-- **Secure key storage:** Electron `safeStorage` (OS keychain on macOS, DPAPI on Windows)
-- **Config persistence:** JSON at `app.getPath('userData')/config.json`
-- **Providers supported:** Anthropic, OpenAI, Gemini, OpenRouter, Ollama (local), Custom
+- **Runtime:** Electron 42 (macOS-first; darwin + win32 build targets, linux eventually).
+- **Language/UI:** plain JavaScript (no TypeScript, no bundler); vanilla HTML/CSS/JS, no framework.
+- **Screenshot/hotkey:** `desktopCapturer` + `globalShortcut` (default `CommandOrControl+Alt+S`
+  → `⌘⌥S` on macOS; user-configurable).
+- **Charts:** Chart.js 4 + plugins (treemap, sankey, matrix, financial, `@sgratzl` boxplot).
+  **Maps:** Leaflet (OSM tiles — the one planned external network call).
+- **Export:** `pdfmake` (PDF), `docx` (Word), `pptxgenjs` (PPT). **Logos:** `simple-icons`.
+- **Key storage:** `safeStorage` (keychain/DPAPI). **Config:** JSON at `userData/config.json` (v2).
+  **History:** threads + crops on disk under `userData` (`src/history.js`).
+
+### Two execution modes (`config.executionMode`)
+- **`local`** (default) — a **Local CLI** the user already installed. Runnable: Claude Code,
+  Antigravity, Codex, Grok, OpenCode, Cursor. The app **detects and runs only — never installs**
+  (the "Install" button just opens a vendor URL). Gemini CLI is retired (honest disabled entry).
+- **`byok`** — Bring Your Own Key to a cloud API. Families: **anthropic, openai, gemini, gateway**
+  (any OpenAI-compatible endpoint — OpenRouter/custom/local servers). Keys encrypted per-provider.
 
 ## Architecture
 
 ### The capture loop
-Hotkey → `startCapture()` → frozen frame via `desktopCapturer` → full-screen overlay dims
-the screen → user drags a box → `capture:commit` IPC → cropped image sent to hub → model
-analyzes it → analysis text shown in hub.
+Hotkey (or "New capture") → gate on `config.executionReady()` → `startCapture()` → frozen frame
+via `desktopCapturer` on the **display under the cursor** → full-screen overlay dims that screen →
+drag a box → `capture:commit` → main crops the frozen frame → the crop (base64 PNG data URL) is
+saved to history, shown as a thumbnail, and sent to `analyze()`. If not ready (no CLI/key), the
+hub opens to **Execution settings** instead — capture never starts.
 
-If no key is configured when hotkey fires, the hub opens instead and shows the inline setup
-panel — capture never starts.
+### Image delivery
+- **BYOK:** crop sent **inline as base64** in the HTTPS body (Anthropic `image` / OpenAI
+  `image_url` / Gemini `inline_data`).
+- **Local CLI:** crop written to a **temp file** under `userData/tmp/…`; its path is handed to the
+  CLI via a prompt hint or a flag (`--add-dir`, `-i`).
 
-### Windows
-| Window | File | Preload | Purpose |
-|--------|------|---------|---------|
-| Hub | `renderer/hub/` | `preload/hubPreload.js` | Main app window — captures, analysis results, history, settings |
-| Overlay | `renderer/overlay/` | `preload/overlayPreload.js` | Full-screen dim + drag-to-select |
-| Status | `renderer/status/` | `preload/statusPreload.js` | Small status/error bar |
-| Setup (legacy) | `renderer/setup/` | `preload/setupPreload.js` | Standalone first-run window (kept but largely replaced by the hub inline panel) |
+### analyze → compute → display (`src/analyze.js`, `calc.js`, `headline.js`)
+`analyze(dataUrl)` sends `buildSystemPrompt()` + image, expects ONLY a JSON envelope →
+`parseReply()` validates against controlled vocabularies (drops off-list) into `extractedTable`
+(raw numbers verbatim), `dataShape`, `columnRoles`, `suggestedCalculations`, number-free
+`headline.angle`, `visualizations`, `geo`, `followups` → `calc.js` does the arithmetic →
+`headline.js` composes the headline and inserts figures (model forbidden from writing numbers).
+
+### Windows (all inline panels live in the hub; no extra BrowserWindow for settings)
+| Window | Renderer | Preload → bridge | Factory (`src/windows/`) |
+|--------|----------|------------------|--------------------------|
+| Hub | `renderer/hub/` | `hubPreload` → `window.hub` | `hubWindow.js` |
+| Overlay | `renderer/overlay/` | `overlayPreload` → `window.overlay` | `overlayWindow.js` |
+| Status | `renderer/status/` | `statusPreload` → `window.screenchart` | `statusWindow.js` |
+| About | `renderer/about/` | `aboutPreload` → `window.about` | `aboutWindow.js` |
+| Permission | `renderer/permission/` | `permissionPreload` → `window.permission` | `permissionWindow.js` |
+
+Settings/About/Permission are fixed full-window overlay panels inside the hub (`#settings-panel`
+with `#ex-local-panel`/`#ex-byok-panel`, `#about-panel`, `#permission-panel`), shown via
+`hub:open-settings`; back returns to the hub view.
 
 ### Result surface
-All results appear inside the hub window — no separate result popup. The hub's `#capture-view`
-panel shows a thumbnail of the capture, the analysis text, follow-up chips, and a follow-up
-input. A session history rail in the sidebar lists past captures (newest first); clicking one
-restores its result.
+Thumbnail (→ lightbox), headline + analysis, a chart or Leaflet map with a `⋯` menu
+(Values/Periods/customize), follow-up chips + input, and report export (PDF/Word/PPT — charts
+and maps). A disk-persisted history rail lists captures (newest first); clicking restores its thread.
 
-### Single-window navigation
-The hub hosts an **inline setup panel** (`#setup-panel`) — a fixed full-window overlay.
-Main process sends `hub:show-setup` IPC → hub JS shows the panel. No second `BrowserWindow`
-is opened for settings. The back button always hides the panel and returns to the hub view.
+### Code layout
+- **Main:** `main.js` = entry/lifecycle/hotkey/capture loop/windows. Logic in `src/` modules
+  (`analyze, calc, headline, capture, config, history, hotkey, localCli, localCliRun, models,
+  icons, userPath`). **IPC** split into `src/ipc/*.js`, each exporting `register(deps)`, wired in
+  `main.js`. Add new IPC to the matching `src/ipc` module, not `main.js`.
+- **Renderer (hub):** many `<script>` files sharing one global scope (call-time resolution, so
+  load order is irrelevant): `hub.js` (shell/state/error card), `renderResult.js` (result +
+  chart-type picker), `chartRender.js` (buildChart), `chartControls.js` (Values/Periods/customize),
+  `mapRender.js` (Leaflet), `reportExport.js` (export + map→PNG capture), `execMenu.js`,
+  `settingsPanels.js` (Local CLI + BYOK), `customDropdown.js`, `geoMatch.js`.
 
-### IPC surface (main ↔ renderer)
-| Channel | Direction | Handler | Purpose |
-|---------|-----------|---------|---------|
-| `hub:capture` | renderer → main | `ipcMain.on` | Trigger capture (gated on hasApiKey) |
-| `hub:open` | renderer → main | `ipcMain.on` | Focus / create hub window |
-| `setup:open` | renderer → main | `ipcMain.on` | Show inline setup panel |
-| `setup:done` | renderer → main | `ipcMain.on` | Legacy: close standalone setup window |
-| `hub:show-setup` | main → hub | `webContents.send` | Tell hub to show setup panel |
-| `key:changed` | main → hub | `webContents.send` | Key saved/cleared — refresh badge |
-| `hub:new-entry` | main → hub | `webContents.send` | New capture ready — hub adds loading entry |
-| `hub:entry-result` | main → hub | `webContents.send` | Analysis result for a specific entry |
-| `hub:retry` | hub → main | `ipcMain.on` | Re-analyze same crop without re-capturing |
-| `hub:copy` | hub → main | `ipcMain.on` | Copy image to clipboard |
-| `hub:copyText` | hub → main | `ipcMain.on` | Copy text to clipboard |
-| `key:status` | renderer → main | `ipcMain.handle` | Returns `publicConfig()` (no raw key) |
-| `key:save` | renderer → main | `ipcMain.handle` | Encrypt + save remote API key |
-| `key:clear` | renderer → main | `ipcMain.handle` | Remove stored key |
-| `local:save` | renderer → main | `ipcMain.handle` | Save Ollama endpoint (no key) |
-| `shell:open` | renderer → main | `ipcMain.on` | Open URL in default browser |
-| `capture:commit` | overlay → main | `ipcMain.on` | Deliver crop rect → triggers analysis |
-| `capture:cancel` | overlay → main | `ipcMain.on` | Abort capture |
-| `overlay:frame` | main → overlay | `webContents.send` | Send frozen frame data URL |
-| `status:state` | main → status | `webContents.send` | Push hotkey + note text |
+### IPC surface (representative — full set in `src/ipc/*` + `main.js`)
+Renderer→main: `invoke` (reply) or `send` (fire-and-forget); main→renderer: `webContents.send`.
 
-### Config (`src/config.js`) — main process only
-- Schema lives in `DEFAULTS`; `sanitize()` whitelists fields before any write
-- `publicConfig()` is the only renderer-safe view: strips `apiKeyEncrypted`, adds `hasApiKey`
-  (true when encrypted key exists, OR when provider is `ollama` and endpoint is non-empty)
-- Raw key never leaves main process — never logged, never sent to a renderer
+| Area | Channels |
+|------|----------|
+| Capture | `capture:commit`/`:cancel`, `overlay:frame`, `hub:capture`, `hub:captureRegion` (map→PNG) |
+| Results | `hub:new-entry`, `hub:entry-result`, `hub:followup`(+`-result`), `hub:retry`, `hub:saveChartOverrides` |
+| Exec/BYOK | `exec:setMode`, `byok:saveProvider`/`:test`/`:activate`/`:revealKey`, `key:status`/`:save`/`:clear`/`:validate`/`:models`, `local:save`, `provider:activate`, `model:save`, `rules:set`, `memory:setModel` |
+| Local CLI | `cli:detect`/`:detectOne`/`:setActive`/`:test`/`:models`/`:saveModel`, `models:list` |
+| History/export | `history:load`/`:delete`, `data:delete`, `hub:history`, `hub:saveImage`/`:savePdf`/`:saveDocx`/`:savePptx`/`:captureReport`, `hub:copy`/`:copyText` |
+| Theme/notif/hotkey | `theme:getPreference`/`:setPreference`/apply, `notifications:bootstrap`/`:set`, `hotkey:save`/`:label`, `hub:hotkey-state`, `hub:open`/`:open-settings`/`:show-permission`, `status:state`, `shell:open`, `provider:logos`/`agent:logos`, `permission:open-settings` |
+
+### Config (`src/config.js`) — main process only, schema v2
+`DEFAULTS` is the source of truth: `executionMode`, `activeProvider`, `byok` (per-provider
+`{apiKey, baseUrl, maxTokens, model, verified}`), `localCli` (`{activeId, lastDetection, models}`),
+`memoryModel` (integration point, no memory step yet), `modelCache`, `hotkey`,
+`theme`/`themePreference`, `globalRules`, `notifications`. `sanitize()` whitelists plain fields;
+keys/BYOK/CLI use dedicated setters. `publicConfig()`/`publicByok()` are the only renderer-safe
+views — they add status booleans and **strip every raw/encrypted key**. `executionReady()` gates
+capture. v1 flat config migrates to v2 on load.
 
 ## Coding Conventions
-- Plain JS, `'use strict'` everywhere
-- `contextIsolation: true`, `nodeIntegration: false` — all renderer↔main communication via
-  `contextBridge` + IPC, never direct Node access from renderer
-- `ipcRenderer.invoke` (returns a Promise) for anything that needs a response; `ipcRenderer.send`
-  (fire-and-forget) for events
-- `ipcMain.handle` (must return a value) for invoke handlers; `ipcMain.on` for fire-and-forget
-- Renderer JS reads from `window.<bridgeName>.*` exposed by each window's preload
-- No inline `style=` attributes in hub HTML — the hub's CSP is `style-src 'self'`, blocking them.
-  Use CSS classes in `hub.css` instead
+- Plain JS, `'use strict'` everywhere. `contextIsolation: true`, `nodeIntegration: false` — all
+  renderer↔main via `contextBridge` + IPC, never direct Node from a renderer.
+- `invoke`/`handle` for request/response; `send`/`on` for fire-and-forget. New handlers go in the
+  matching `src/ipc/*` `register()`. Renderer reads `window.<bridge>.*` (hub → `window.hub`).
+- Hub CSP is strict (`default-src 'none'; style-src 'self'; script-src 'self'; img-src data: file:
+  <OSM hosts>`): **no inline `style=` in hub HTML** — use `hub.css` classes (JS `element.style.x`
+  IS allowed and used).
+- Local CLI execution is shell-free: `execFile`/`spawn` with an **args array, never `shell:true`**;
+  no user/AI/config string ever becomes a command.
 
-## File Placement Rules
-```
-main.js                    # app entry, IPC wiring, window management
-src/
-  capture.js               # desktopCapturer + crop helpers
-  config.js                # config + safeStorage key management (main only)
-  windows/
-    hubWindow.js           # BrowserWindow factory for hub
-    overlayWindow.js       # BrowserWindow factory for overlay
-    resultWindow.js        # BrowserWindow factory for result (legacy, not opened)
-    setupWindow.js         # BrowserWindow factory for legacy setup (kept for safety)
-    statusWindow.js        # BrowserWindow factory for status bar
-renderer/
-  theme.css                # shared CSS custom properties (colours, radii, etc.)
-  hub/
-    index.html             # hub window HTML (includes inline #setup-panel overlay)
-    hub.css                # hub styles (all .sp-* setup-panel styles live here too)
-    hub.js                 # hub + setup-panel logic
-  overlay/                 # drag-to-select overlay
-  result/                  # legacy result window (not used; kept for safety)
-  setup/                   # legacy standalone setup window (largely superseded)
-  status/                  # small status / error bar
-preload/
-  hubPreload.js            # contextBridge for hub window
-  overlayPreload.js        # contextBridge for overlay window
-  resultPreload.js         # contextBridge for legacy result window (not used)
-  setupPreload.js          # contextBridge for legacy setup window
-  statusPreload.js         # contextBridge for status window
-```
+## File Placement
+`main.js` → app/IPC wiring/windows. `src/` → main-process modules; `src/ipc/` → one file per area
+(`register()`); `src/windows/` → BrowserWindow factories. `renderer/{hub,overlay,status,about,
+permission}/` → windows (hub is the multi-`<script>` split above); `renderer/theme.css` → shared
+CSS vars. `preload/` → one contextBridge per window. `scripts/` → build + `test-*.js` self-checks
+(not shipped). `assets/`, `geo/` → icons + GeoJSON (fetched on postinstall).
 
-## UI and Design Rules
-- Region-select overlay: full-screen frozen screenshot dims behind a drag-box selector.
-- Hub: single window — no navigation opens a new `BrowserWindow`. Settings/setup show as an
-  inline overlay panel inside the hub.
-- Capture result: small thumbnail top-left, analysis text below, follow-up chips + input at bottom.
-  Clicking the thumbnail opens a full-size lightbox.
-- Session history rail in the hub sidebar lists captures (newest first); clicking restores that result.
-- The setup panel back button is **always** visible — first-run users must be able to dismiss
-  it without completing setup.
-- Provider badge colors are CSS classes (not inline styles) because of the hub's CSP:
-  `.sp-badge-anthropic`, `.sp-badge-openai`, `.sp-badge-gemini`, `.sp-badge-openrouter`,
-  `.sp-badge-ollama`, `.sp-badge-custom` — defined in `hub.css`.
-- Theming: dark/light toggle in hub header; `data-theme` attribute on `<html>`, CSS variables
-  in `renderer/theme.css`.
+## UI and Design
+- Overlay dims the display under the cursor (multi-monitor aware) behind a drag-box selector.
+- Single window: settings/about/permission are inline overlay panels, never a new window.
+- Charts (Chart.js) for tabular data; Leaflet for genuinely geographic data (`map_bubble`/
+  `map_choropleth`). Chart-type picker = Recommended / Selected / + More; grouped data supports
+  Values/Periods and small multiples where it fits.
+- Theming: system/light/dark (`themePreference`); `data-theme` on `<html>`, CSS vars in
+  `theme.css`. Brand/badge colors are CSS classes (CSP forbids inline styles).
 
-## Security Rules
-- API key encrypted via Electron `safeStorage` — **never plaintext, never logged, never sent
-  to a renderer**.
-- Renderers receive only `{ hasApiKey: boolean, provider, theme, … }` from `key:status` —
-  the raw or encrypted key never leaves the main process.
-- Key validation in the renderer: **format check only, no network calls**.
-- Local/private is a core promise: no telemetry, no surprise network calls. Data only goes to
-  the user's configured endpoint.
+## Security
+- Keys encrypted per-provider via `safeStorage` — **never plaintext, logged, or sent to a
+  renderer** (raw or encrypted). Renderers get only `hasKey`/status. Renderer key validation is a
+  **format check only, no network**.
+- Local CLI: **detect and run only — NEVER install** (no `npm/brew/curl`, no shell). Detection
+  resolves binaries on PATH + known bin dirs and runs `<bin> --version`.
+- Local/private is a core promise: no telemetry, no surprise network calls — data goes only to the
+  user's configured endpoint (or stays fully local with a local CLI). OSM tiles are the one
+  declared external fetch, only when a map is shown.
 - Don't build out-of-scope features unprompted.
 
 ## Content Guidelines
-- Output is plain-language and concrete (e.g. "Revenue's up 12%, but it's all one client —
-  concentration risk."), not jargon. Lead with the insight.
+Plain-language, concrete, insight-first (e.g. "Revenue's up 12%, but it's all one client —
+concentration risk."), not jargon. All figures are computed by the app.
 
-## Testing and Quality
-- **Priority test:** local vision model accuracy on real screenshots.
-- No test framework wired yet — add one before expanding the AI/model layer.
+## Testing and Commands
+- **Priority test:** local vision model accuracy on real screenshots. Node self-checks in
+  `scripts/test-*.js` (pure logic, no framework) via `npm test`; add one per non-trivial helper.
 
-## Commands
 ```bash
-npm start          # run the Electron app
+npm start          # run the app (no dev build step)
+npm test           # scripts/test-*.js self-checks
+npm run dist:mac   # macOS dmg (electron-builder)
+npm run dist:win   # Windows installer/zip
+npm run icons:verify   # verify logos vs installed simple-icons
 ```
-No build step — plain JS loaded directly by Electron.
+`postinstall` fetches map GeoJSON (`scripts/download-geo.js`). Plain JS loads directly in dev; the
+only "build" is packaging installers.
 
-## Out of scope (not yet — don't build unprompted)
-Settings UI beyond the inline setup panel, multiple OSes (beyond dev on macOS), installer,
-PDF/spreadsheet export, history persistence beyond the current session, auto-update, a website.
+## Out of scope (don't build unprompted)
+Installing CLIs for the user, a hosted/central-server web version, a marketing website,
+spreadsheet export, and a full memory/summarization step (`memoryModel` config exists as an
+integration point but nothing consumes it yet). Ask before adding runtime dependencies — prefer
+stdlib / native platform features / already-installed deps.
