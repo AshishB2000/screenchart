@@ -1,6 +1,6 @@
 'use strict';
 
-const { ipcMain, shell } = require('electron');
+const { ipcMain, shell, app } = require('electron');
 const { providerLogos, agentLogos } = require('../icons');
 
 // Shell / logos IPC — synchronous brand-glyph payloads for the sandboxed hub
@@ -11,6 +11,10 @@ function register() {
   // pulls the brand glyph paths from main at load time (tiny one-shot payload).
   ipcMain.on('provider:logos', (e) => { e.returnValue = providerLogos; });
   ipcMain.on('agent:logos', (e) => { e.returnValue = agentLogos; });
+
+  // App version straight from package.json (via app.getVersion), read once by the
+  // hub preload at load. Keeps the About panel's version dynamic — never hardcoded.
+  ipcMain.on('app:version', (e) => { e.returnValue = app.getVersion(); });
 
   ipcMain.on('shell:open', (_e, url) => {
     if (typeof url === 'string' && /^https?:\/\//.test(url)) {

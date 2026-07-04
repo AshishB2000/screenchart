@@ -165,17 +165,17 @@ applyEffectiveTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 
 })();
 
 // ── Settings menu popup (top-right gear) ────────────────────────────────────
-const SHARE_URL  = 'https://github.com'; // placeholder until we have a real site/repo
-const SHARE_TEXT = 'Screenchart — screenshot any data, get instant AI analysis.';
-const GITHUB_URL = 'https://github.com'; // swap in the real repo URL later
+const GITHUB_URL = 'https://github.com/AshishB2000/screenchart';
 
 // ── Help menu destinations ──────────────────────────────────────────────────
-// All placeholders until launch — keep these named + grouped so the real URLs
-// are a one-line swap each. Opened in the default browser via shell.openExternal.
-const HELP_URL            = 'https://github.com'; // TODO: real help destination (likely GitHub Issues / docs)
-const FEATURE_REQUEST_URL = 'https://github.com'; // TODO: real feature-request destination (likely GitHub Issues/new)
-const WHATS_NEW_URL       = 'https://github.com'; // TODO: real changelog/releases URL
-const WEBSITE_URL         = 'https://github.com'; // TODO: real landing-page URL (Cloudflare Pages domain)
+// Single source for the Help menu links — keep them here so they're a one-line
+// swap. Opened in the default browser via shell.openExternal (never in-app).
+const HELP_URL            = 'https://github.com/AshishB2000/screenchart/issues/new/choose';
+const FEATURE_REQUEST_URL = 'https://github.com/AshishB2000/screenchart/issues/new/choose';
+// While we're shipping pre-releases, point "What's new" at the full releases list.
+// Once we ship a non-prerelease, switch this to /releases/latest.
+const WHATS_NEW_URL       = 'https://github.com/AshishB2000/screenchart/releases';
+const WEBSITE_URL         = 'https://screenchart.app';
 // GITHUB_URL (above) is reused for the GitHub row.
 const HELP_LINKS = {
   help:     HELP_URL,
@@ -185,9 +185,16 @@ const HELP_LINKS = {
   github:   GITHUB_URL,
 };
 
+// Share row: reuse WEBSITE_URL as the single source for screenchart.app.
+// NOTE: LinkedIn (share-offsite) and Facebook (sharer) accept a URL only and
+// ignore SHARE_TEXT — they pull the page's own OpenGraph title/description. The
+// other four carry the text. Colon (not em-dash) so the encoded text reads clean.
+const SHARE_URL  = WEBSITE_URL;
+const SHARE_TEXT = 'Screenchart: screenshot any chart, table, or data and get instant AI analysis. Local-first, BYOK.';
+
 const _enc = encodeURIComponent;
 const SHARE_LINKS = {
-  x:        `https://twitter.com/intent/tweet?text=${_enc(SHARE_TEXT)}&url=${_enc(SHARE_URL)}`,
+  x:        `https://x.com/intent/tweet?text=${_enc(SHARE_TEXT)}&url=${_enc(SHARE_URL)}`,
   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${_enc(SHARE_URL)}`,
   facebook: `https://www.facebook.com/sharer/sharer.php?u=${_enc(SHARE_URL)}`,
   reddit:   `https://www.reddit.com/submit?url=${_enc(SHARE_URL)}&title=${_enc(SHARE_TEXT)}`,
@@ -1775,8 +1782,19 @@ function hideSettingsPanel() {
 
 if (stpClose) stpClose.addEventListener('click', hideSettingsPanel);
 
+// Fill the About panel version dynamically from package.json (app.getVersion via
+// the preload) — never hardcoded, so it tracks every version bump.
+const stpVersionEl = document.querySelector('.stp-version');
+if (stpVersionEl) {
+  const v = (window.hub && window.hub.appVersion) || '';
+  stpVersionEl.textContent = v ? `Screenchart ${v}` : 'Screenchart';
+}
+
 const stpAbout = document.getElementById('stp-about');
-if (stpAbout) stpAbout.addEventListener('click', () => { hideSettingsPanel(); showAboutPanel(); });
+// The About link opens the public website in the default browser (not in-app).
+if (stpAbout) stpAbout.addEventListener('click', () => {
+  if (window.hub && typeof window.hub.openExternal === 'function') window.hub.openExternal(WEBSITE_URL);
+});
 
 const stpGithubLink = document.getElementById('stp-github-link');
 if (stpGithubLink) {
