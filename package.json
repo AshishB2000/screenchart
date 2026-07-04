@@ -47,6 +47,7 @@
       "!dist/**",
       "!docs/**",
       "!scripts/**",
+      "!native/**",
       "!assets/icons/**",
       "!**/*.md",
       "!verify-logos.mjs",
