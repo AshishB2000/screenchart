@@ -59,22 +59,13 @@ https://github.com/user-attachments/assets/8d0a13db-bc9f-463f-a849-7ca74f77af54
 
 <table>
 <tr>
-<td valign="top">
+<td width="50%" valign="top">
 <img src="assets/images/capture-flow.png" alt="Capture flow" /><br/>
 <sub><b>Capture</b> — press the hotkey (<b>⌘⌥S</b> on macOS, <b>Ctrl+Alt+S</b> on Windows — configurable), the display under your cursor dims with a frozen snapshot, and you drag a box around the data.</sub>
 </td>
-</tr>
-</table>
-
-<table>
-<tr>
 <td width="50%" valign="top">
 <img src="assets/images/result-chart.png" alt="Chart result" /><br/>
 <sub><b>Analysis + chart</b> — a number-accurate headline, plain-English analysis, and the recommended chart. Switch chart types, tweak values/periods, and drill in.</sub>
-</td>
-<td width="50%" valign="top">
-<img src="assets/images/result-map.png" alt="Map result" /><br/>
-<sub><b>Maps</b> — genuinely geographic data renders as a Leaflet bubble/choropleth map (OpenStreetMap tiles).</sub>
 </td>
 </tr>
 <tr>
