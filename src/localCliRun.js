@@ -142,29 +142,57 @@ function buildPrompt(messages, imageRef) {
   return turns.join('\n\n---\n\n');
 }
 
+// Live agent children, so a timeout OR app quit can kill the whole process
+// GROUP (see killTree). detached children would otherwise orphan any background
+// daemon the CLI forked.
+const liveChildren = new Set();
+
+// Kill the child's entire process group. Because we spawn detached, the child is
+// its own group leader (pgid === pid), so process.kill(-pid) reaps it AND any
+// grandchild it forked — not just the leader.
+// ponytail: POSIX group-kill; on Windows process.kill(-pid) throws, so we fall
+// back to a leader-only kill (macOS-first app; acceptable on win32).
+function killTree(child, signal) {
+  if (!child || child.pid == null) return;
+  try { process.kill(-child.pid, signal); }
+  catch (_) { try { child.kill(signal); } catch (_) {} }
+}
+
+// Kill every still-running agent child. Called from main.js on app will-quit so a
+// test/analysis in flight can't leak an orphaned agent process.
+function killAllRunning() {
+  for (const child of liveChildren) killTree(child, 'SIGKILL');
+  liveChildren.clear();
+}
+
 function runChild(bin, args, cwd, stdin, timeoutMs, env) {
   return new Promise((resolve) => {
     let child;
     try {
-      // env defaults to the app env (spawn would inherit it anyway); pass it
-      // explicitly so an adapter that needs a specific var (e.g. grok's
-      // GROK_API_KEY) makes that requirement visible.
-      child = spawn(bin, args, { cwd, windowsHide: true, env: env || process.env });
+      // detached: true makes the child its own process-group leader, so macOS
+      // attributes its file access to the CLI (its own TCC responsibility) rather
+      // than to Screenchart — that's what stops spurious Photos / Documents /
+      // Downloads / Music permission prompts under our app's name when testing a
+      // CLI provider. env still inherits process.env: the agents need the real
+      // $HOME (~/.claude, ~/.codex, ~/.cursor, …) to authenticate.
+      child = spawn(bin, args, { cwd, windowsHide: true, detached: true, env: env || process.env });
     } catch (err) {
       resolve({ spawnError: true, stderr: String((err && err.message) || err) });
       return;
     }
+    liveChildren.add(child);
+    const done = (result) => { liveChildren.delete(child); resolve(result); };
     let stdout = '', stderr = '', timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, timeoutMs || TIMEOUT_MS);
+    const timer = setTimeout(() => { timedOut = true; killTree(child, 'SIGKILL'); }, timeoutMs || TIMEOUT_MS);
     child.stdout.on('data', (d) => { stdout += d; });
     child.stderr.on('data', (d) => { stderr += d; });
     child.on('error', (err) => {
       clearTimeout(timer);
-      resolve({ spawnError: true, stderr: String((err && err.message) || err) });
+      done({ spawnError: true, stderr: String((err && err.message) || err) });
     });
     child.on('close', (code) => {
       clearTimeout(timer);
-      resolve({ code, stdout, stderr, timedOut });
+      done({ code, stdout, stderr, timedOut });
     });
     child.stdin.on('error', () => {}); // ignore EPIPE if the child exits early
     child.stdin.write(stdin || '');
@@ -771,4 +799,4 @@ async function runLocalCli(cliId, systemPrompt, messages, _opts) {
   return { error: errProvider('That local CLI', 'isn’t supported yet.') };
 }
 
-module.exports = { runLocalCli, listAntigravityModels, listGrokModels, listOpenCodeModels, listCursorModels };
+module.exports = { runLocalCli, listAntigravityModels, listGrokModels, listOpenCodeModels, listCursorModels, killAllRunning };

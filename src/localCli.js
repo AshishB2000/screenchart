@@ -11,11 +11,33 @@
 // and we never spawn a shell (execFile, args array, shell:false implicitly).
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 const { knownDirs } = require('./userPath');
 
 const VERSION_TIMEOUT_MS = 3000;
+
+// Live --version probes, so a hung probe or app quit can kill the whole process
+// GROUP. We spawn detached (own group leader), so process.kill(-pid) reaps the
+// probe AND any background daemon it forked — the classic "CLI spawns a daemon
+// that inherits the pipe" case below. Detaching also makes macOS attribute the
+// child's file access to the CLI, not to Screenchart, so detection never trips a
+// Photos / Documents / Downloads / Music TCC prompt under our app's name.
+const liveProbes = new Set();
+
+// ponytail: POSIX group-kill; Windows lacks process.kill(-pid) → leader-only fallback.
+function killTree(child, signal) {
+  if (!child || child.pid == null) return;
+  try { process.kill(-child.pid, signal); }
+  catch (_) { try { child.kill(signal); } catch (_) {} }
+}
+
+// Kill every still-running probe. Called from main.js on app will-quit.
+function killAllProbes() {
+  for (const child of liveProbes) killTree(child, 'SIGKILL');
+  liveProbes.clear();
+}
 
 // Claude Code accepted --model values. The `claude` CLI has NO models-list
 // command (`claude models`/`claude config` just print the banner), but it DOES
@@ -191,11 +213,15 @@ function readVersion(resolvedPath, versionArgs, regex) {
 
     let child;
     try {
+      // cwd = os.tmpdir(): a non-protected scoped dir so the probe never runs from
+      // the app bundle, "/", or a user folder. detached: true → own process group
+      // (see killTree / liveProbes above).
       child = execFile(
         resolvedPath,
         Array.isArray(versionArgs) ? versionArgs : [],
-        { timeout: VERSION_TIMEOUT_MS, windowsHide: true, maxBuffer: 1 << 20, killSignal: 'SIGKILL' },
+        { timeout: VERSION_TIMEOUT_MS, windowsHide: true, maxBuffer: 1 << 20, killSignal: 'SIGKILL', cwd: os.tmpdir(), detached: true },
         (_err, stdout, stderr) => {
+          liveProbes.delete(child);
           const out = `${stdout || ''}${stderr || ''}`;
           const m = (regex || SEMVER).exec(out);
           finish(m ? m[1] : null);
@@ -204,15 +230,18 @@ function readVersion(resolvedPath, versionArgs, regex) {
     } catch (_) {
       return finish(null); // spawn failed (e.g. EACCES) — treat as version-unknown
     }
+    liveProbes.add(child);
 
     // Hard guard against a hung probe: some CLIs spawn a background daemon that
     // inherits the stdout pipe, so execFile's callback NEVER fires even after the
     // child is killed — which would hang detectAll and freeze the "Scanning your
     // PATH…" spinner forever. Resolve regardless after a bounded wait, killing the
-    // child best-effort. The binary was still found, so detectOne marks it
-    // installed (version unknown). unref() so the timer can't keep the app alive.
+    // whole GROUP (killTree) so that daemon dies too. The binary was still found,
+    // so detectOne marks it installed (version unknown). unref() so the timer can't
+    // keep the app alive.
     const guard = setTimeout(() => {
-      try { child && child.kill('SIGKILL'); } catch (_) {}
+      liveProbes.delete(child);
+      killTree(child, 'SIGKILL');
       finish(null);
     }, VERSION_TIMEOUT_MS + 1500);
     if (guard.unref) guard.unref();
@@ -277,6 +306,7 @@ module.exports = {
   readVersion,
   detectOne,
   detectAll,
+  killAllProbes,
 };
 
 // Self-check: `node src/localCli.js`. Proves readVersion never hangs — even on a
@@ -299,6 +329,21 @@ if (require.main === module) {
     const real = await readVersion(process.execPath, ['--version'], /v?(\d+\.\d+\.\d+)/);
     assert.ok(real.version && /\d+\.\d+\.\d+/.test(real.version), 'reads a real version: ' + real.version);
 
-    console.log('readVersion guard OK — hung probe returned null in', elapsed + 'ms; node version', real.version);
+    // Group-kill: killTree must reap the WHOLE detached process group, not just the
+    // leader — else a CLI's forked daemon orphans on timeout/quit. Spawn a detached
+    // parent that backgrounds a grandchild (sleep 30), print the grandchild's pid,
+    // killTree the leader, then assert the grandchild is gone.
+    const { spawn } = require('child_process');
+    const gpid = await new Promise((res) => {
+      const p = spawn('/bin/sh', ['-c', 'sleep 30 & echo $!; wait'], { detached: true });
+      let buf = '';
+      p.stdout.on('data', (d) => { buf += d; });
+      setTimeout(() => { killTree(p, 'SIGKILL'); setTimeout(() => res(parseInt(buf.trim(), 10)), 300); }, 300);
+    });
+    let orphanAlive = true;
+    try { process.kill(gpid, 0); } catch (_) { orphanAlive = false; }
+    assert.ok(gpid && !orphanAlive, 'group-kill reaped the grandchild (no orphan), pid=' + gpid);
+
+    console.log('readVersion guard OK — hung probe null in', elapsed + 'ms; node', real.version + '; group-kill reaped orphan pid', gpid);
   })().catch((e) => { console.error('FAIL', e && e.message); process.exit(1); });
 }
