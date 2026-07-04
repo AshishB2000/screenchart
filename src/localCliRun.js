@@ -32,6 +32,7 @@ const fsp = require('fs/promises');
 const { spawn } = require('child_process');
 const { app, nativeImage } = require('electron');
 const config = require('./config');
+const { wrapCommand } = require('./disclaim');
 
 const TIMEOUT_MS = 90000;      // CLI cold-starts are slower than HTTP.
 const MAX_DIMENSION = 1568;    // Claude's largest useful image edge; downscale beyond this.
@@ -169,13 +170,16 @@ function runChild(bin, args, cwd, stdin, timeoutMs, env) {
   return new Promise((resolve) => {
     let child;
     try {
-      // detached: true makes the child its own process-group leader, so macOS
-      // attributes its file access to the CLI (its own TCC responsibility) rather
-      // than to Screenchart — that's what stops spurious Photos / Documents /
-      // Downloads / Music permission prompts under our app's name when testing a
-      // CLI provider. env still inherits process.env: the agents need the real
-      // $HOME (~/.claude, ~/.codex, ~/.cursor, …) to authenticate.
-      child = spawn(bin, args, { cwd, windowsHide: true, detached: true, env: env || process.env });
+      // TCC: run the agent via disclaim-exec (packaged macOS) so it's its OWN
+      // responsible process — macOS then blames the AGENT, not Screenchart, for
+      // its file access, killing the spurious Photos/Documents/Downloads/Music
+      // prompts. No-op passthrough in dev / non-mac. The helper uses SETEXEC, so
+      // everything below (pipes, timeout, group-kill) still targets the real agent.
+      const { cmd, args: cmdArgs } = wrapCommand(bin, args);
+      // detached: true keeps the child its own process-group leader so killTree can
+      // reap it (and any daemon it forks). env still inherits process.env: the
+      // agents need the real $HOME (~/.claude, ~/.codex, ~/.cursor, …) to auth.
+      child = spawn(cmd, cmdArgs, { cwd, windowsHide: true, detached: true, env: env || process.env });
     } catch (err) {
       resolve({ spawnError: true, stderr: String((err && err.message) || err) });
       return;

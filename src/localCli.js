@@ -15,6 +15,7 @@ const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 const { knownDirs } = require('./userPath');
+const { wrapCommand } = require('./disclaim');
 
 const VERSION_TIMEOUT_MS = 3000;
 
@@ -213,12 +214,16 @@ function readVersion(resolvedPath, versionArgs, regex) {
 
     let child;
     try {
+      // TCC: run the probe via disclaim-exec (packaged macOS) so the CLI is its
+      // own responsible process — macOS won't attribute its file access to
+      // Screenchart. No-op passthrough in dev / non-mac.
       // cwd = os.tmpdir(): a non-protected scoped dir so the probe never runs from
       // the app bundle, "/", or a user folder. detached: true → own process group
       // (see killTree / liveProbes above).
+      const { cmd, args } = wrapCommand(resolvedPath, Array.isArray(versionArgs) ? versionArgs : []);
       child = execFile(
-        resolvedPath,
-        Array.isArray(versionArgs) ? versionArgs : [],
+        cmd,
+        args,
         { timeout: VERSION_TIMEOUT_MS, windowsHide: true, maxBuffer: 1 << 20, killSignal: 'SIGKILL', cwd: os.tmpdir(), detached: true },
         (_err, stdout, stderr) => {
           liveProbes.delete(child);

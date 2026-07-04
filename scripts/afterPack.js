@@ -49,4 +49,16 @@ module.exports = async function afterPack(context) {
     } catch (_) { /* key absent — fine, hook stays idempotent */ }
   }
   console.log(`[afterPack] ${appName}.app: stripped ${removed} unused usage-description key(s); screen recording is the only one declared.`);
+
+  // Compile the disclaim-exec helper (see native/disclaim-exec.c) into the app's
+  // Resources so the CLI-agent spawn can shed TCC responsibility. Build it ONCE on
+  // the final merged UNIVERSAL app (skip the per-arch *-temp dirs), as a universal
+  // Mach-O so it isn't lipo-merged. afterSign re-signs the whole app afterwards,
+  // but we ad-hoc sign the helper here too so it's valid immediately.
+  if (context.appOutDir.includes('-temp')) return;
+  const helperSrc = path.join(__dirname, '..', 'native', 'disclaim-exec.c');
+  const helperOut = path.join(context.appOutDir, `${appName}.app`, 'Contents', 'Resources', 'disclaim-exec');
+  execFileSync('clang', ['-arch', 'x86_64', '-arch', 'arm64', '-O2', '-o', helperOut, helperSrc], { stdio: 'inherit' });
+  execFileSync('codesign', ['--force', '--sign', '-', '--options', 'runtime', '--timestamp=none', helperOut], { stdio: 'inherit' });
+  console.log('[afterPack] compiled + ad-hoc signed universal disclaim-exec helper into Resources.');
 };
