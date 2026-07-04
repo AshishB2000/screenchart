@@ -5,8 +5,8 @@
 <p align="center">Local-first · model-agnostic · open source. The model reads your screen; the app does the math.</p>
 
 <p align="center">
-  <!-- TODO(ashish): replace docs/screenshots/hero.png with a wide hero banner (see IMAGES list in the PR). -->
-  <img src="docs/screenshots/hero.png" alt="Screenchart — screenshot any chart, table, or data and get instant AI analysis" width="640" />
+  <!-- TODO(ashish): replace assets/images/hero.png with a wide hero banner (see IMAGES list in the PR). -->
+  <img src="assets/images/hero.png" alt="Screenchart — screenshot any chart, table, or data and get instant AI analysis" width="640" />
 </p>
 
 <p align="center">
@@ -31,11 +31,11 @@
 🧠 **A vision model reads it** and answers in plain English. 📊 **The app draws the right chart**
 (Chart.js) **or map** (Leaflet) from the data it extracted. 🔒 **Local-first & private** — runs
 on a **local CLI you already have** or your **own API key**; no accounts, no telemetry.
-💾 Export to **PDF · Word · PPT**, and keep a **capture history** on disk.
+💾 Export to **PDF · Word · PPT · PNG**, and keep a **capture history** on disk.
 
 **Core principle:** the model *extracts and classifies* the numbers; the **app does the
-arithmetic** — deterministic and auditable, so the headline figure is never something the model
-made up. You get an insight, not a hallucination.
+arithmetic** — deterministic and auditable. The app computes every metric itself, so the headline
+is arithmetic on the extracted values, not a figure the model wrote freehand.
 
 Drag a box around on-screen data, and Screenchart turns it into an answer + a visualization,
 without leaving what you're doing. Each capture is a **conversation** — ask follow-ups and it
@@ -50,11 +50,11 @@ keeps the thread.
   1) GitHub-hosted MP4 (plays inline with sound): drag the .mp4 into a GitHub issue/PR
      comment, copy the resulting https://github.com/user-attachments/assets/... URL, and
      paste it here as a bare line or inside <video src="..."></video>. Renders only on github.com.
-  2) Silent looping GIF (autoplays everywhere): save it as docs/screenshots/demo.gif and use
+  2) Silent looping GIF (autoplays everywhere): save it as assets/images/demo.gif and use
      the <img> below (swap .png → .gif).
 -->
 <p align="center">
-  <img src="docs/screenshots/demo.png" alt="Screenchart end-to-end: capture → analysis → chart → export" width="720" />
+  <img src="assets/images/demo.png" alt="Screenchart end-to-end: capture → analysis → chart → export" width="720" />
 </p>
 
 ---
@@ -69,7 +69,7 @@ keeps the thread.
 <table>
 <tr>
 <td valign="top">
-<img src="docs/screenshots/capture-flow.png" alt="Capture flow" /><br/>
+<img src="assets/images/capture-flow.png" alt="Capture flow" /><br/>
 <sub><b>Capture</b> — press the hotkey (<b>⌘⌥S</b> on macOS, configurable), the display under your cursor dims with a frozen snapshot, and you drag a box around the data.</sub>
 </td>
 </tr>
@@ -78,22 +78,22 @@ keeps the thread.
 <table>
 <tr>
 <td width="50%" valign="top">
-<img src="docs/screenshots/result-chart.png" alt="Chart result" /><br/>
+<img src="assets/images/result-chart.png" alt="Chart result" /><br/>
 <sub><b>Analysis + chart</b> — a number-accurate headline, plain-English analysis, and the recommended chart. Switch chart types, tweak values/periods, and drill in.</sub>
 </td>
 <td width="50%" valign="top">
-<img src="docs/screenshots/result-map.png" alt="Map result" /><br/>
+<img src="assets/images/result-map.png" alt="Map result" /><br/>
 <sub><b>Maps</b> — genuinely geographic data renders as a Leaflet bubble/choropleth map (OpenStreetMap tiles).</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" valign="top">
-<img src="docs/screenshots/followup.png" alt="Follow-up conversation" /><br/>
+<img src="assets/images/followup.png" alt="Follow-up conversation" /><br/>
 <sub><b>Follow-ups</b> — each capture is a thread. Ask "what's the trend?" or "flag the risks" and it answers against the same screenshot.</sub>
 </td>
 <td width="50%" valign="top">
-<img src="docs/screenshots/export.png" alt="Export" /><br/>
-<sub><b>Export</b> — send the result (charts and maps included) to <b>PDF</b>, <b>Word</b>, or <b>PowerPoint</b>.</sub>
+<img src="assets/images/export.png" alt="Export" /><br/>
+<sub><b>Export</b> — send the result (charts and maps included) to <b>PDF</b>, <b>Word</b>, <b>PowerPoint</b>, or <b>PNG</b>.</sub>
 </td>
 </tr>
 </table>
@@ -129,7 +129,7 @@ Screenchart never ships or installs a model. It **runs a local CLI you already h
 <table>
 <tr>
 <td valign="top">
-<img src="docs/screenshots/execution-settings.png" alt="Execution settings" /><br/>
+<img src="assets/images/execution-settings.png" alt="Execution settings" /><br/>
 <sub><b>Execution settings</b> — choose a detected Local CLI, or bring your own key for a cloud provider.</sub>
 </td>
 </tr>
@@ -151,7 +151,7 @@ Screenchart detects agent CLIs already on your `PATH` and runs them in read-only
 
 ### 🔑 BYOK — bring your own key
 
-Encrypted per-provider on your machine (never logged, never sent to a renderer).
+Stored per-provider on your machine — plaintext in `userData/config.json` (gitignored; see [PRIVACY.md](PRIVACY.md)), never logged and never sent to a renderer.
 
 | Family | Endpoints |
 |---|---|
@@ -181,7 +181,7 @@ Screenchart is the local-first, number-honest alternative:
 - 📊 **Charts and maps, not just text.** Chart.js (bars, lines, treemap, sankey, matrix, boxplot,
   financial) and Leaflet maps, picked to fit the data.
 - 💬 **Conversational.** Every capture is a thread — follow-ups replay the full context.
-- 📦 **Yours to keep.** History persists on disk; export to PDF / Word / PPT.
+- 📦 **Yours to keep.** History persists on disk; export to PDF / Word / PPT / PNG.
 
 ### Comparison
 
@@ -192,7 +192,7 @@ Screenchart is the local-first, number-honest alternative:
 | Charts + maps generated | ❌ | manual | sometimes | **✅** |
 | Runs locally / private | ✅ | ✅ | ❌ | **✅ (local CLI)** |
 | Bring your own model/key | — | — | rarely | **✅** |
-| Export PDF / Word / PPT | ❌ | manual | ❌ | **✅** |
+| Export PDF / Word / PPT / PNG | ❌ | manual | ❌ | **✅** |
 | Open source | — | — | ❌ | **✅ MIT** |
 
 ---
@@ -281,7 +281,7 @@ when a map renders. Full details → [PRIVACY.md](PRIVACY.md).
 - [x] Charts (Chart.js + plugins) and maps (Leaflet)
 - [x] Two execution modes — Local CLI + BYOK (Anthropic / OpenAI / Gemini / gateway)
 - [x] Follow-up conversations, per-capture history on disk
-- [x] Export to PDF / Word / PPT
+- [x] Export to PDF / Word / PPT / PNG
 - [x] macOS (universal) + Windows builds via electron-builder
 - [ ] Linux builds
 - [ ] Memory / summarization step (config integration point exists; nothing consumes it yet)
