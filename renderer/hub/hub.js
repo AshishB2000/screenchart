@@ -1379,7 +1379,7 @@ function showEmptyState() {
   currentEntryId = null;
   if (captureView) captureView.classList.add('cap-view-hidden');
   if (mainTitleH) mainTitleH.textContent = 'Welcome';
-  if (mainTitleSub) mainTitleSub.textContent = 'Capture a chart or table to begin';
+  if (mainTitleSub) mainTitleSub.textContent = 'Capture any data';
   if (captureHistoryEl) {
     captureHistoryEl.querySelectorAll('.cap-hist-item').forEach(el => el.classList.remove('cap-hist-item-active'));
   }
