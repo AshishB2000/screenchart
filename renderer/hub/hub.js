@@ -1777,8 +1777,19 @@ function hideSettingsPanel() {
 
 if (stpClose) stpClose.addEventListener('click', hideSettingsPanel);
 
+// Fill the About panel version dynamically from package.json (app.getVersion via
+// the preload) — never hardcoded, so it tracks every version bump.
+const stpVersionEl = document.querySelector('.stp-version');
+if (stpVersionEl) {
+  const v = (window.hub && window.hub.appVersion) || '';
+  stpVersionEl.textContent = v ? `Screenchart ${v}` : 'Screenchart';
+}
+
 const stpAbout = document.getElementById('stp-about');
-if (stpAbout) stpAbout.addEventListener('click', () => { hideSettingsPanel(); showAboutPanel(); });
+// The About link opens the public website in the default browser (not in-app).
+if (stpAbout) stpAbout.addEventListener('click', () => {
+  if (window.hub && typeof window.hub.openExternal === 'function') window.hub.openExternal(WEBSITE_URL);
+});
 
 const stpGithubLink = document.getElementById('stp-github-link');
 if (stpGithubLink) {
