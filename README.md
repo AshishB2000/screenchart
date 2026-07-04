@@ -56,21 +56,21 @@ https://github.com/user-attachments/assets/8d0a13db-bc9f-463f-a849-7ca74f77af54
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="50%" valign="middle">
 <img src="assets/images/capture-flow.png" alt="Capture flow" width="100%" /><br/>
 <sub><b>Capture</b> — press the hotkey (<b>⌘⌥S</b> on macOS, <b>Ctrl+Alt+S</b> on Windows — configurable), the display under your cursor dims with a frozen snapshot, and you drag a box around the data.</sub>
 </td>
-<td width="50%" valign="top">
+<td width="50%" valign="middle">
 <img src="assets/images/result-chart.png" alt="Chart result" width="100%" /><br/>
 <sub><b>Analysis + chart</b> — a number-accurate headline, plain-English analysis, and the recommended chart. Switch chart types, tweak values/periods, and drill in.</sub>
 </td>
 </tr>
 <tr>
-<td width="50%" valign="top">
+<td width="50%" valign="middle">
 <img src="assets/images/followup.png" alt="Follow-up conversation" width="100%" /><br/>
 <sub><b>Follow-ups</b> — each capture is a thread. Ask "what's the trend?" or "flag the risks" and it answers against the same screenshot.</sub>
 </td>
-<td width="50%" valign="top">
+<td width="50%" valign="middle">
 <img src="assets/images/export.png" alt="Export" width="100%" /><br/>
 <sub><b>Export</b> — send the result (charts and maps included) to <b>PDF</b>, <b>Word</b>, <b>PowerPoint</b>, or <b>PNG</b>.</sub>
 </td>
