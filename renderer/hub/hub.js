@@ -167,15 +167,17 @@ applyEffectiveTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 
 // ── Settings menu popup (top-right gear) ────────────────────────────────────
 const SHARE_URL  = 'https://github.com'; // placeholder until we have a real site/repo
 const SHARE_TEXT = 'Screenchart — screenshot any data, get instant AI analysis.';
-const GITHUB_URL = 'https://github.com'; // swap in the real repo URL later
+const GITHUB_URL = 'https://github.com/AshishB2000/screenchart';
 
 // ── Help menu destinations ──────────────────────────────────────────────────
-// All placeholders until launch — keep these named + grouped so the real URLs
-// are a one-line swap each. Opened in the default browser via shell.openExternal.
-const HELP_URL            = 'https://github.com'; // TODO: real help destination (likely GitHub Issues / docs)
-const FEATURE_REQUEST_URL = 'https://github.com'; // TODO: real feature-request destination (likely GitHub Issues/new)
-const WHATS_NEW_URL       = 'https://github.com'; // TODO: real changelog/releases URL
-const WEBSITE_URL         = 'https://github.com'; // TODO: real landing-page URL (Cloudflare Pages domain)
+// Single source for the Help menu links — keep them here so they're a one-line
+// swap. Opened in the default browser via shell.openExternal (never in-app).
+const HELP_URL            = 'https://github.com/AshishB2000/screenchart/issues/new/choose';
+const FEATURE_REQUEST_URL = 'https://github.com/AshishB2000/screenchart/issues/new/choose';
+// While we're shipping pre-releases, point "What's new" at the full releases list.
+// Once we ship a non-prerelease, switch this to /releases/latest.
+const WHATS_NEW_URL       = 'https://github.com/AshishB2000/screenchart/releases';
+const WEBSITE_URL         = 'https://screenchart.app';
 // GITHUB_URL (above) is reused for the GitHub row.
 const HELP_LINKS = {
   help:     HELP_URL,
