@@ -1,6 +1,6 @@
 <h1 align="center">Screenchart</h1>
 
-<p align="center"><b>Screenshot any data → press a hotkey → get a plain-English answer and the right chart or map.</b></p>
+<p align="center"><b>Press a hotkey from anywhere (or click Capture in the app) → screenshot any data → get a plain-English answer + the right visualization, from 28 chart &amp; map types.</b></p>
 
 <p align="center">Local-first · model-agnostic · open source. The model reads your screen; the app does the math.</p>
 
@@ -97,6 +97,27 @@ keeps the thread.
 </td>
 </tr>
 </table>
+
+---
+
+## Visualizations
+
+Screenchart picks the visual that fits the data it extracted — and you can switch to any of
+**28 chart &amp; map types** from the `⋯` menu (Recommended / Selected / + More). Grouped data
+supports Values/Periods toggles and small multiples where they fit.
+
+| Group | Types |
+|---|---|
+| **Bar &amp; column** | Column · Clustered column · Stacked column · 100% stacked column · Bar · Clustered bar · Stacked bar · 100% stacked bar |
+| **Line &amp; area** | Line · Line with markers · Area · Stacked area · Line + column (combo) |
+| **Part-to-whole** | Pie · Donut · Treemap · Funnel |
+| **Distribution &amp; relationship** | Scatter · Bubble · Histogram · Box plot · Heatmap |
+| **Flow &amp; finance** | Sankey · Candlestick |
+| **Single value / tabular** | Gauge · Table |
+| **Maps** | Region map (choropleth) · Bubble map |
+
+Charts render with **Chart.js 4** (+ treemap, sankey, matrix, financial, and boxplot plugins);
+maps with **Leaflet** (OpenStreetMap tiles).
 
 ---
 
