@@ -54,6 +54,7 @@
     ],
     "asar": true,
     "afterPack": "./scripts/afterPack.js",
+    "afterSign": "./scripts/afterSign.js",
     "mac": {
       "target": [
         {
@@ -66,8 +67,10 @@
       "category": "public.app-category.productivity",
       "icon": "assets/icons/icon.icns",
       "minimumSystemVersion": "11.0",
-      "identity": "Screenchart Code Signing",
-      "hardenedRuntime": false,
+      "identity": null,
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "gatekeeperAssess": false,
       "darkModeSupport": true,
       "extendInfo": {
