@@ -46,17 +46,7 @@ keeps the thread.
 
 ## See it in action
 
-<!--
-  END-TO-END DEMO. Two ways to fill this (pick one):
-  1) GitHub-hosted MP4 (plays inline with sound): drag the .mp4 into a GitHub issue/PR
-     comment, copy the resulting https://github.com/user-attachments/assets/... URL, and
-     paste it here as a bare line or inside <video src="..."></video>. Renders only on github.com.
-  2) Silent looping GIF (autoplays everywhere): save it as assets/images/demo.gif and use
-     the <img> below (swap .png → .gif).
--->
-<p align="center">
-  <img src="assets/images/demo.png" alt="Screenchart end-to-end: capture → analysis → chart → export" width="720" />
-</p>
+https://github.com/user-attachments/assets/8d0a13db-bc9f-463f-a849-7ca74f77af54
 
 ---
 
