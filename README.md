@@ -28,8 +28,9 @@
 ## What is Screenchart
 
 📸 **Screenshot anything on screen** — a chart, a table, a dashboard, a PDF, a spreadsheet.
-🧠 **A vision model reads it** and answers in plain English. 📊 **The app draws the right chart**
-(Chart.js) **or map** (Leaflet) from the data it extracted. 🔒 **Local-first & private** — runs
+🧠 **A vision model reads it** and gives AI analysis in plain English. 📊 **The app draws the right
+chart** (Chart.js) **or map** (Leaflet) from the data it extracted, choosing from **28 supported
+visualizations**. 🔒 **Local-first & private** — runs
 on a **local CLI you already have** or your **own API key**; no accounts, no telemetry.
 💾 Export to **PDF · Word · PPT · PNG**, and keep a **capture history** on disk.
 
@@ -37,7 +38,7 @@ on a **local CLI you already have** or your **own API key**; no accounts, no tel
 arithmetic** — deterministic and auditable. The app computes every metric itself, so the headline
 is arithmetic on the extracted values, not a figure the model wrote freehand.
 
-Drag a box around on-screen data, and Screenchart turns it into an answer + a visualization,
+Drag a box around on-screen data, and Screenchart turns it into an analysis + a visualization,
 without leaving what you're doing. Each capture is a **conversation** — ask follow-ups and it
 keeps the thread.
 
@@ -70,7 +71,7 @@ keeps the thread.
 <tr>
 <td valign="top">
 <img src="assets/images/capture-flow.png" alt="Capture flow" /><br/>
-<sub><b>Capture</b> — press the hotkey (<b>⌘⌥S</b> on macOS, configurable), the display under your cursor dims with a frozen snapshot, and you drag a box around the data.</sub>
+<sub><b>Capture</b> — press the hotkey (<b>⌘⌥S</b> on macOS, <b>Ctrl+Alt+S</b> on Windows — configurable), the display under your cursor dims with a frozen snapshot, and you drag a box around the data.</sub>
 </td>
 </tr>
 </table>
@@ -224,7 +225,7 @@ directly. Packaging installers uses electron-builder (`npm run dist:mac` / `npm 
 ### First capture
 
 1. In **Settings → Execution**, pick a detected Local CLI or add an API key.
-2. Press the capture hotkey from any app — **⌘⌥S** (macOS) / **Ctrl+Alt+S** (Win/Linux), configurable.
+2. Press the capture hotkey from any app — **⌘⌥S** on macOS, **Ctrl+Alt+S** on Windows — configurable.
 3. Drag a box around a chart, table, or any data.
 4. Read the plain-English analysis + chart; ask a follow-up; export if you want.
 
