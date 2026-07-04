@@ -55,6 +55,7 @@ app.on('second-instance', () => {
 const { captureFrozenFrame, cropToRect, getActiveDisplay } = require('./src/capture');
 const config = require('./src/config');
 const localCli = require('./src/localCli');
+const localCliRun = require('./src/localCliRun');
 const { analyze, analyzeFollowup } = require('./src/analyze');
 
 console.log('[boot] Screenchart', app.getVersion(), '| packaged =', app.isPackaged);
@@ -639,6 +640,10 @@ app.whenReady().then(async () => {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+  // Reap any in-flight agent children (detached → own process group) so a running
+  // test/analysis/probe can't leak an orphaned CLI process on quit.
+  localCli.killAllProbes();
+  localCliRun.killAllRunning();
 });
 
 // On macOS, re-open the hub when the dock icon is clicked.
