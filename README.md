@@ -182,6 +182,12 @@ Screenchart is the local-first, number-honest alternative:
 
 ## Quick start
 
+> **Why does my OS warn about this app?** Screenchart is free and open source and isn't signed
+> with a paid code-signing certificate, so macOS and Windows show a one-time security prompt on
+> first launch. This reflects the missing certificate, not the app's safety. The full source and
+> build pipeline are public, and checksums are published with every release. See the first-launch
+> steps below, or skip the prompt entirely by [running from source](#-run-from-source).
+
 ### 🖥️ Download the app (recommended)
 
 - **macOS** (Apple Silicon + Intel, universal) → [Download](https://screenchart.app/download)
