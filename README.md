@@ -184,13 +184,30 @@ Screenchart is the local-first, number-honest alternative:
 
 ### 🖥️ Download the app (recommended)
 
-- **macOS** (Apple Silicon + Intel, universal) → [GitHub Releases](https://github.com/AshishB2000/screenchart/releases)
-- **Windows** (x64) → [GitHub Releases](https://github.com/AshishB2000/screenchart/releases)
+- **macOS** (Apple Silicon + Intel, universal) → [Download](https://screenchart.app/download)
+- **Windows** (x64) → [Download](https://screenchart.app/download)
 - **Linux** — planned.
 
-macOS builds are self-signed (no paid Apple certificate yet), so on first launch macOS shows
-"Apple could not verify…". Right-click the app → **Open** once to get past it. Full setup and the
-Screen Recording grant are in [QUICKSTART.md](QUICKSTART.md).
+<details>
+<summary><b>macOS — first launch (unsigned build)</b></summary>
+
+Screenchart is a free, open-source build not signed with a paid Apple certificate, so macOS blocks
+it on first open. To allow it (you only do this once):
+
+1. Double-click **Screenchart** — you'll see "could not verify." Click **Done**.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll down to the message about Screenchart and click **Open Anyway**.
+4. When it prompts again, click **Open Anyway**, then authenticate with your password or Touch ID.
+
+It opens normally afterward. Screen Recording setup is in [QUICKSTART.md](QUICKSTART.md).
+</details>
+
+<details>
+<summary><b>Windows — first launch (unsigned build)</b></summary>
+
+The installer isn't signed with a paid certificate, so Windows SmartScreen warns about the
+download. Click **More info → Run anyway** to continue.
+</details>
 
 ### 🧑‍💻 Run from source
 
@@ -234,13 +251,10 @@ grant it in **System Settings → Privacy & Security → Screen Recording**, the
 grant it to whatever launches Electron (your terminal / `Electron.app`), not "Screenchart" — that
 applies once packaged.
 
-### Linux — Wayland
-On **Wayland**, global hotkeys and screen capture are unreliable (the hotkey may fail to register;
-capture may trigger a portal picker). **X11 is recommended.** The app detects Wayland and warns.
-
-### HiDPI / Retina
-Captures are cropped from the actual returned bitmap resolution, so selections stay accurate on
-Retina and Windows display-scaling (125–150%).
+### Windows
+The default hotkey is **Ctrl+Alt+S** (configurable). Captures are cropped from the actual returned
+bitmap resolution, so selections stay accurate under display scaling (125–150%). The installer is
+unsigned, so SmartScreen warns on first run — see the download steps above.
 
 ---
 
@@ -254,20 +268,6 @@ when a map renders. Full details → [PRIVACY.md](PRIVACY.md).
 
 > **API keys** are stored in `userData/config.json` (gitignored). See PRIVACY.md for the exact
 > storage details before adding a key.
-
----
-
-## Roadmap
-
-- [x] Capture loop (frozen-frame, multi-monitor, drag-select)
-- [x] Analysis → compute → number-accurate headline
-- [x] Charts (Chart.js + plugins) and maps (Leaflet)
-- [x] Two execution modes — Local CLI + BYOK (Anthropic / OpenAI / Gemini / gateway)
-- [x] Follow-up conversations, per-capture history on disk
-- [x] Export to PDF / Word / PPT / PNG
-- [x] macOS (universal) + Windows builds via electron-builder
-- [ ] Linux builds
-- [ ] Memory / summarization step (config integration point exists; nothing consumes it yet)
 
 ---
 
