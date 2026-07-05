@@ -6,7 +6,7 @@
   "author": "Screenchart",
   "homepage": "https://screenshot.app",
   "scripts": {
-    "start": "cross-env ELECTRON_RUN_AS_NODE= electron . --password-store=basic",
+    "start": "node scripts/start.js",
     "postinstall": "node scripts/download-geo.js",
     "test": "node scripts/test-geo-match.js && node scripts/test-value-labels.js && node scripts/test-viz-icons.js && node scripts/test-palette.js && node scripts/test-small-multiples.js && node scripts/test-more-charts.js && node scripts/test-map-capture.js && node scripts/test-readiness-gate.js",
     "icons:verify": "node scripts/verify-icons.js",
