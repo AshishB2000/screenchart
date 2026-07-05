@@ -19,7 +19,7 @@ on:
 
 jobs:
   macos:
-    name: macOS universal .dmg + .zip
+    name: macOS universal .dmg
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -35,11 +35,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: screenchart-macos
-          # Only mac artifacts land in dist/ on this runner, so *.zip is the
-          # universal mac zip — never the Windows one (that's built separately).
-          path: |
-            dist/*.dmg
-            dist/*.zip
+          path: dist/*.dmg
           if-no-files-found: error
 
   windows:
