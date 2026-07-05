@@ -4,7 +4,7 @@ Run Screenchart from source and understand how the pieces fit.
 
 ## Environment requirements
 
-- **Node.js 18+** and **npm** (only needed to install deps and run the scripts).
+- **Node.js 20+** and **npm** (only needed to install deps and run the scripts).
 - **Electron 42** — installed as a dev dependency; you don't install it globally.
 - **macOS** (primary) or **Windows**. Linux runs in dev but isn't a build target yet.
 - **Optional — a Local CLI agent** already on your `PATH` (Claude Code, Codex, Cursor,

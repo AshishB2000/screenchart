@@ -199,7 +199,7 @@ npm install          # postinstall fetches map GeoJSON
 npm start
 ```
 
-Requirements: [Node.js](https://nodejs.org/) 18+ and npm. No build step in dev — plain JS loads
+Requirements: [Node.js](https://nodejs.org/) 20+ and npm. No build step in dev — plain JS loads
 directly. Packaging installers uses electron-builder (`npm run dist:mac` / `npm run dist:win`).
 
 ### 🖥️ Download the app
