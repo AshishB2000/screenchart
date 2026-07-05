@@ -188,7 +188,21 @@ Screenchart is the local-first, number-honest alternative:
 > build pipeline are public, and checksums are published with every release. See the first-launch
 > steps below, or skip the prompt entirely by [running from source](#-run-from-source).
 
-### 🖥️ Download the app (recommended)
+### 🧑‍💻 Run from source
+
+Recommended if you have git: no installer and no first-launch security prompt.
+
+```bash
+git clone https://github.com/AshishB2000/screenchart.git
+cd screenchart
+npm install          # postinstall fetches map GeoJSON
+npm start
+```
+
+Requirements: [Node.js](https://nodejs.org/) 18+ and npm. No build step in dev — plain JS loads
+directly. Packaging installers uses electron-builder (`npm run dist:mac` / `npm run dist:win`).
+
+### 🖥️ Download the app
 
 - **macOS** (Apple Silicon + Intel, universal) → [Download](https://screenchart.app/download)
 - **Windows** (x64) → [Download](https://screenchart.app/download)
@@ -215,22 +229,10 @@ The installer isn't signed with a paid certificate, so Windows SmartScreen warns
 download. Click **More info → Run anyway** to continue.
 </details>
 
-### 🧑‍💻 Run from source
-
-```bash
-git clone https://github.com/AshishB2000/screenchart.git
-cd screenchart
-npm install          # postinstall fetches map GeoJSON
-npm start
-```
-
-Requirements: [Node.js](https://nodejs.org/) 18+ and npm. No build step in dev — plain JS loads
-directly. Packaging installers uses electron-builder (`npm run dist:mac` / `npm run dist:win`).
-
 ### First capture
 
 1. In **Settings → Execution**, pick a detected Local CLI or add an API key.
-2. Press the capture hotkey from any app — **⌘⌥S** on macOS, **Ctrl+Alt+S** on Windows — configurable.
+2. Press the capture hotkey from any app: **⌘⌥S** on macOS, **Ctrl+Alt+S** on Windows (configurable).
 3. Drag a box around a chart, table, or any data.
 4. Read the plain-English analysis + chart; ask a follow-up; export if you want.
 
