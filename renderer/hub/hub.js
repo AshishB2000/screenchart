@@ -185,21 +185,25 @@ const HELP_LINKS = {
   github:   GITHUB_URL,
 };
 
-// Share row: reuse WEBSITE_URL as the single source for screenchart.app.
+// Share row. Every social button carries this one URL for its preview card — a
+// share link can only attach a single url. screenchart.app isn't deployed yet
+// (blank preview), so we point at the live GitHub repo, which renders a proper
+// card.
+// TODO: switch shared URL to https://screenchart.app once the site is deployed with OG tags
+const SHARE_URL  = GITHUB_URL;
 // NOTE: LinkedIn (share-offsite) and Facebook (sharer) accept a URL only and
 // ignore SHARE_TEXT — they pull the page's own OpenGraph title/description. The
 // other four carry the text. Colon (not em-dash) so the encoded text reads clean.
-const SHARE_URL  = WEBSITE_URL;
-const SHARE_TEXT = 'Screenchart: screenshot any chart, table, or data and get instant AI analysis. Local-first, BYOK.';
+const SHARE_TEXT = 'Screenchart: screenshot any chart, table, or data and get instant AI analysis. Local-first, bring your own key.';
 
 const _enc = encodeURIComponent;
 const SHARE_LINKS = {
-  x:        `https://x.com/intent/tweet?text=${_enc(SHARE_TEXT)}&url=${_enc(SHARE_URL)}`,
+  x:        `https://twitter.com/intent/tweet?url=${_enc(SHARE_URL)}&text=${_enc(SHARE_TEXT)}`,
   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${_enc(SHARE_URL)}`,
   facebook: `https://www.facebook.com/sharer/sharer.php?u=${_enc(SHARE_URL)}`,
   reddit:   `https://www.reddit.com/submit?url=${_enc(SHARE_URL)}&title=${_enc(SHARE_TEXT)}`,
   telegram: `https://t.me/share/url?url=${_enc(SHARE_URL)}&text=${_enc(SHARE_TEXT)}`,
-  whatsapp: `https://api.whatsapp.com/send?text=${_enc(SHARE_TEXT + ' ' + SHARE_URL)}`,
+  whatsapp: `https://wa.me/?text=${_enc(SHARE_TEXT + ' ' + SHARE_URL)}`,
 };
 
 const settingsGear = document.getElementById('settings-gear');
