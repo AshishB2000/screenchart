@@ -17,19 +17,21 @@ Run Screenchart from source and understand how the pieces fit.
 git clone https://github.com/AshishB2000/screenchart.git
 cd screenchart
 npm install        # also runs postinstall → downloads map GeoJSON
-npm start          # launches the app (no build/bundle step)
+npm start          # compiles TypeScript (build:ts), then launches the app
 ```
 
-There is no dev build step — plain JS loads directly. `npm start` runs Electron against the
-working tree. On first capture, macOS asks for **Screen Recording** permission; grant it under
-**System Settings → Privacy & Security → Screen Recording**, then relaunch.
+`npm start` runs `npm run build:ts` first (tsc compiles each `.ts` to a sibling `.js` in place —
+no bundler), then launches Electron against the working tree. On first capture, macOS asks for
+**Screen Recording** permission; grant it under **System Settings → Privacy & Security → Screen
+Recording**, then relaunch.
 
 ## Other scripts
 
 | Command | What it does |
 |---|---|
-| `npm start` | Run the app against the working tree |
-| `npm test` | Run the `scripts/test-*.js` self-checks (pure logic, no framework) |
+| `npm start` | Compile TypeScript, then run the app against the working tree |
+| `npm run build:ts` | Compile all `.ts` to sibling `.js` in place (tsc, no bundler) |
+| `npm test` | Compile, then run the `scripts/test-*` self-checks (pure logic, no framework) |
 | `npm run icons:verify` | Verify bundled brand logos against installed `simple-icons` |
 | `npm run dist:mac` | Build a macOS `.dmg` (electron-builder) |
 | `npm run dist:mac:unsigned` | macOS build with code-signing disabled |

@@ -6,19 +6,27 @@
   "author": "Screenchart",
   "homepage": "https://screenshot.app",
   "scripts": {
+    "build:ts": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json",
+    "prestart": "npm run build:ts",
     "start": "node scripts/start.js",
-    "postinstall": "node scripts/download-geo.js",
+    "postinstall": "npm run build:ts && node scripts/download-geo.js",
+    "pretest": "npm run build:ts",
     "test": "node scripts/test-geo-match.js && node scripts/test-value-labels.js && node scripts/test-viz-icons.js && node scripts/test-palette.js && node scripts/test-small-multiples.js && node scripts/test-more-charts.js && node scripts/test-map-capture.js && node scripts/test-readiness-gate.js",
     "icons:verify": "node scripts/verify-icons.js",
+    "predist:mac": "npm run build:ts",
     "dist:mac": "electron-builder --mac --publish never",
+    "predist:mac:unsigned": "npm run build:ts",
     "dist:mac:unsigned": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --publish never",
+    "predist:win": "npm run build:ts",
     "dist:win": "electron-builder --win --publish never"
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "cross-env": "^10.1.0",
     "electron": "^42.4.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@sgratzl/chartjs-chart-boxplot": "^4.4.5",
@@ -52,7 +60,9 @@
       "!assets/icons/**",
       "!**/*.md",
       "!verify-logos.mjs",
-      "!**/*.map"
+      "!**/*.map",
+      "!**/*.ts",
+      "!tsconfig*.json"
     ],
     "asar": true,
     "afterPack": "./scripts/afterPack.js",
