@@ -20,3 +20,12 @@ config.json
 
 # Claude Code agent worktrees (transient)
 .claude/worktrees/
+
+# TypeScript: ALL runtime .js is compiled output of a sibling .ts source
+# (in-place emit) — sources are the .ts files, never commit emitted .js.
+/main.js
+src/**/*.js
+preload/**/*.js
+renderer/**/*.js
+scripts/**/*.js
+*.tsbuildinfo

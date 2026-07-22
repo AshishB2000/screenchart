@@ -18,7 +18,8 @@ quality before adding code. The model *extracts and classifies*; the app *does t
 
 ## Tech Stack
 - **Runtime:** Electron 42 (macOS-first; darwin + win32 build targets, linux eventually).
-- **Language/UI:** plain JavaScript (no TypeScript, no bundler); vanilla HTML/CSS/JS, no framework.
+- **Language/UI:** TypeScript, **incremental migration** from plain JS (no bundler — `tsc` only);
+  vanilla HTML/CSS, no framework. Mixed tree: converted files are `.ts`, the rest still `.js`.
 - **Screenshot/hotkey:** `desktopCapturer` + `globalShortcut` (default `CommandOrControl+Alt+S`
   → `⌘⌥S` on macOS; user-configurable).
 - **Charts:** Chart.js 4 + plugins (treemap, sankey, matrix, financial, `@sgratzl` boxplot).
@@ -107,8 +108,18 @@ views — they add status booleans and **strip every raw key**. `executionReady(
 capture. v1 flat config migrates to v2 on load.
 
 ## Coding Conventions
-- Plain JS, `'use strict'` everywhere. `contextIsolation: true`, `nodeIntegration: false` — all
-  renderer↔main via `contextBridge` + IPC, never direct Node from a renderer.
+- **TypeScript, incremental (in-place sibling emit).** New files are `.ts`; when materially
+  touching an old `.js`, convert it: same directory, `foo.js` → `foo.ts`, `npm run build:ts`
+  (tsc, no bundler) emits the sibling `foo.js`, and that emitted path gets an explicit
+  `.gitignore` entry. require paths / `<script src>` tags / electron-builder config never change.
+  Two worlds, two configs: `tsconfig.main.json` (main/src/preload/scripts — NodeNext CommonJS,
+  node types) and `tsconfig.renderer.json` (DOM, no node types). `strict` is on; no `any` without
+  a comment. Renderer files stay **global-scope scripts** — no import/export in renderer `.ts`
+  (shared globals are declared in `renderer/hub/globals.d.ts`). `prestart`/`pretest`/`predist:*`
+  compile automatically.
+- Unconverted plain JS keeps `'use strict'` everywhere. `contextIsolation: true`,
+  `nodeIntegration: false` — all renderer↔main via `contextBridge` + IPC, never direct Node from
+  a renderer.
 - `invoke`/`handle` for request/response; `send`/`on` for fire-and-forget. New handlers go in the
   matching `src/ipc/*` `register()`. Renderer reads `window.<bridge>.*` (hub → `window.hub`).
 - Hub CSP is strict (`default-src 'none'; style-src 'self'; script-src 'self'; img-src data: file:
@@ -159,8 +170,9 @@ npm run dist:mac   # macOS dmg (electron-builder)
 npm run dist:win   # Windows installer/zip
 npm run icons:verify   # verify logos vs installed simple-icons
 ```
-`postinstall` fetches map GeoJSON (`scripts/download-geo.js`). Plain JS loads directly in dev; the
-only "build" is packaging installers.
+`postinstall` fetches map GeoJSON (`scripts/download-geo.js`). `npm run build:ts` compiles the
+converted `.ts` files in place (runs automatically via `prestart`/`pretest`/`predist:*`);
+unconverted JS loads directly. The only other "build" is packaging installers.
 
 ## Git and commits
 - **Branch from `main` for every change.** Each new feature or fix starts on a fresh branch
